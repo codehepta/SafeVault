@@ -2,6 +2,12 @@
 
 Secure coding starter project for validating user input, preventing SQL injection with parameterized queries, and testing against common web vulnerabilities.
 
+## 📚 Documentation
+
+- **[TODO.md](TODO.md)** - Prioritized enhancement roadmap with 20+ security improvements
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment guide with security checklist
+- **[SECURITY_SUMMARY.md](SECURITY_SUMMARY.md)** - Security vulnerabilities identified and fixed
+
 ## Project Structure
 
 - `src/SafeVault`: Secure application logic
@@ -12,6 +18,7 @@ Secure coding starter project for validating user input, preventing SQL injectio
   - `Security/JwtTokenService.cs`: JWT access/refresh token issuing and validation setup
   - `Security/IdentitySeeder.cs`: Identity role and default user seeding
   - `Security/AuthorizationService.cs`: Role-based authorization checks
+  - `Middleware/ContentSecurityPolicyMiddleware.cs`: CSP and security headers
   - `Data/AuthDbContext.cs`: ASP.NET Identity + refresh token persistence
   - `Data/UserRepository.cs`: Parameterized database query sample
   - `Models/User.cs`: Legacy user model
@@ -22,6 +29,7 @@ Secure coding starter project for validating user input, preventing SQL injectio
   - `TestParameterizedQueries.cs`: SQL injection resistance tests
   - `TestLoginSecurity.cs`: Secure login and credential verification tests
   - `TestIdentityAuthApi.cs`: registration/login/JWT refresh/role endpoint tests
+  - `TestSecurityHeaders.cs`: CSP and security header validation tests
 - `web/webform.html`: Secure sample web form
 - `database/database.sql`: Base user table schema
 
@@ -98,8 +106,11 @@ dotnet test SafeVault.sln
 
 ## What Is Covered
 
-- Username validation with strict allowlist (`A-Z`, `a-z`, `0-9`, `_`, `.`, `-`)
+- Username validation with strict allowlist (`A-Z`, `a-z`, `0-9`, `_`, `.`, `-`) and lowercase normalization
 - Email normalization and format validation
+- Content Security Policy (CSP) headers to prevent inline script execution
+- Security headers: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection
+- CORS configuration with explicit origin allowlist
 - Output encoding for HTML rendering to reduce XSS risk
 - Detection and cleanup helpers for common XSS payload patterns
 - Parameterized query usage to block SQL injection payloads
