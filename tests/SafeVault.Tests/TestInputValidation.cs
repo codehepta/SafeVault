@@ -82,4 +82,44 @@ public class TestInputValidation
         Assert.That(username, Is.EqualTo("safe_user-1"));
         Assert.That(email, Is.EqualTo("person@example.com"));
     }
+
+    [Test]
+    public void ValidateUsername_NormalizesToLowercase()
+    {
+        // Arrange
+        var upperUsername = "TestUser123";
+        var mixedUsername = "TeSt_UsEr-456";
+
+        // Act
+        var normalizedUpper = InputValidator.ValidateAndSanitizeUsername(upperUsername);
+        var normalizedMixed = InputValidator.ValidateAndSanitizeUsername(mixedUsername);
+
+        // Assert
+        Assert.That(normalizedUpper, Is.EqualTo("testuser123"),
+            "Username should be normalized to lowercase");
+        Assert.That(normalizedMixed, Is.EqualTo("test_user-456"),
+            "Username with mixed case should be normalized to lowercase");
+    }
+
+    [Test]
+    public void ValidateUsername_DifferentCasing_ProducesSameResult()
+    {
+        // Arrange
+        var username1 = "alice";
+        var username2 = "ALICE";
+        var username3 = "Alice";
+
+        // Act
+        var normalized1 = InputValidator.ValidateAndSanitizeUsername(username1);
+        var normalized2 = InputValidator.ValidateAndSanitizeUsername(username2);
+        var normalized3 = InputValidator.ValidateAndSanitizeUsername(username3);
+
+        // Assert
+        Assert.That(normalized1, Is.EqualTo(normalized2),
+            "Different casing should normalize to same username");
+        Assert.That(normalized2, Is.EqualTo(normalized3),
+            "Different casing should normalize to same username");
+        Assert.That(normalized1, Is.EqualTo("alice"),
+            "All variants should normalize to lowercase");
+    }
 }
