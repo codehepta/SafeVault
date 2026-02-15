@@ -160,10 +160,12 @@ const string DefaultDevKey = "SafeVault_Dev_Only_Super_Long_Key_Change_In_Produc
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.PostConfigure<JwtOptions>(options =>
 {
+    bool isProduction = !builder.Environment.IsDevelopment() && builder.Environment.EnvironmentName != "Testing";
+    
     if (string.IsNullOrWhiteSpace(options.SigningKey) || options.SigningKey.Length < 32)
     {
         // In production, REJECT weak or default keys - fail fast
-        if (!builder.Environment.IsDevelopment())
+        if (isProduction)
         {
             throw new InvalidOperationException(
                 "CRITICAL SECURITY ERROR: JWT signing key is missing or too weak for production. " +
@@ -171,11 +173,11 @@ builder.Services.PostConfigure<JwtOptions>(options =>
                 "Generate a secure key with: openssl rand -base64 48");
         }
         
-        // In development, use default key but warn
+        // In development/testing, use default key but warn
         options.SigningKey = DefaultDevKey;
         Console.WriteLine("WARNING: Using default development JWT signing key. Do not use in production!");
     }
-    else if (options.SigningKey == DefaultDevKey && !builder.Environment.IsDevelopment())
+    else if (options.SigningKey == DefaultDevKey && isProduction)
     {
         // Explicitly reject the known default key in production
         throw new InvalidOperationException(
@@ -208,10 +210,13 @@ builder.Services.AddScoped<JwtTokenService>();
 var issuer = builder.Configuration[$"{JwtOptions.SectionName}:Issuer"] ?? "SafeVault";
 var audience = builder.Configuration[$"{JwtOptions.SectionName}:Audience"] ?? "SafeVault.Client";
 var signingKey = builder.Configuration[$"{JwtOptions.SectionName}:SigningKey"];
+
+bool isProduction = !builder.Environment.IsDevelopment() && builder.Environment.EnvironmentName != "Testing";
+
 if (string.IsNullOrWhiteSpace(signingKey) || signingKey.Length < 32)
 {
     // In production, REJECT weak or default keys - fail fast
-    if (!builder.Environment.IsDevelopment())
+    if (isProduction)
     {
         throw new InvalidOperationException(
             "CRITICAL SECURITY ERROR: JWT signing key is missing or too weak for production. " +
@@ -219,11 +224,11 @@ if (string.IsNullOrWhiteSpace(signingKey) || signingKey.Length < 32)
             "Generate a secure key with: openssl rand -base64 48");
     }
     
-    // In development, use default key but warn
+    // In development/testing, use default key but warn
     signingKey = DefaultDevKey;
     Console.WriteLine("WARNING: Using default development JWT signing key. Do not use in production!");
 }
-else if (signingKey == DefaultDevKey && !builder.Environment.IsDevelopment())
+else if (signingKey == DefaultDevKey && isProduction)
 {
     // Explicitly reject the known default key in production
     throw new InvalidOperationException(
