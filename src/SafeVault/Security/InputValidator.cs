@@ -20,9 +20,10 @@ public static class InputValidator
 
     /// <summary>
     /// Validates and normalizes a username according to the SafeVault allowlist policy.
+    /// Usernames are normalized to lowercase to prevent case-sensitive duplicates.
     /// </summary>
     /// <param name="username">Username input from client.</param>
-    /// <returns>Trimmed username when valid.</returns>
+    /// <returns>Trimmed and lowercase-normalized username when valid.</returns>
     /// <exception cref="ArgumentException">Thrown when the username is missing or invalid.</exception>
     public static string ValidateAndSanitizeUsername(string username)
     {
@@ -37,7 +38,8 @@ public static class InputValidator
             throw new ArgumentException("Username contains invalid characters.", nameof(username));
         }
 
-        return trimmed;
+        // Normalize to lowercase to prevent duplicate accounts with different casing
+        return trimmed.ToLowerInvariant();
     }
 
     /// <summary>

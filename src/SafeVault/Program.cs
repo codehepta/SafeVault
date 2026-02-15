@@ -9,6 +9,7 @@ using SafeVault.Helpers;
 using SafeVault.Models;
 using SafeVault.Data;
 using SafeVault.Security;
+using SafeVault.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,21 @@ if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URL
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddLogging();
+
+// Configure CORS with secure defaults
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? new[] { "https://localhost:7181" };
+        
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
 builder.Services.AddHttpsRedirection(options =>
 {
     options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
@@ -72,6 +88,13 @@ builder.Services.PostConfigure<JwtOptions>(options =>
     if (string.IsNullOrWhiteSpace(options.SigningKey) || options.SigningKey.Length < 32)
     {
         options.SigningKey = "SafeVault_Dev_Only_Super_Long_Key_Change_In_Production_12345";
+        
+        // Log warning if using default key (security risk in production)
+        if (!builder.Environment.IsDevelopment())
+        {
+            Console.WriteLine("WARNING: Using default JWT signing key. This is a SECURITY RISK in production!");
+            Console.WriteLine("Set the JWT:SigningKey in appsettings.Production.json or via environment variable.");
+        }
     }
 });
 
@@ -102,6 +125,13 @@ var signingKey = builder.Configuration[$"{JwtOptions.SectionName}:SigningKey"];
 if (string.IsNullOrWhiteSpace(signingKey) || signingKey.Length < 32)
 {
     signingKey = "SafeVault_Dev_Only_Super_Long_Key_Change_In_Production_12345";
+    
+    // Log warning if using default key (security risk in production)
+    if (!builder.Environment.IsDevelopment())
+    {
+        Console.WriteLine("WARNING: Using default JWT signing key. This is a SECURITY RISK in production!");
+        Console.WriteLine("Set the JWT:SigningKey in appsettings.Production.json or via environment variable.");
+    }
 }
 
 builder.Services
@@ -147,6 +177,13 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseForwardedHeaders();
+
+// Add security headers (CSP, X-Frame-Options, etc.)
+app.UseContentSecurityPolicy();
+
+// Enable CORS before authentication
+app.UseCors();
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
