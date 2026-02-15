@@ -1,0 +1,33 @@
+@model SafeVault.Models.LoginPageViewModel
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<section class="card">
+    <p class="note">Demo users: <strong>admin/Admin#123</strong> and <strong>user/User#123</strong></p>
+
+    <form asp-action="Index" method="post">
+        <div class="row">
+            <label asp-for="Username"></label>
+            <input asp-for="Username" />
+            <span class="validation" asp-validation-for="Username"></span>
+        </div>
+        <div class="row">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" type="password" />
+            <span class="validation" asp-validation-for="Password"></span>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <p class="message">@Model.Message</p>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Role))
+    {
+        <p>Role: @Model.Role</p>
+    }
+</section>

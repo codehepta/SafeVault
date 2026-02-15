@@ -1,0 +1,21 @@
+* text=auto eol=lf
+
+# Solution and C# files
+*.sln text eol=crlf
+*.cs text eol=lf
+*.csproj text eol=lf
+*.props text eol=lf
+*.targets text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+*.cshtml text eol=lf
+*.html text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
