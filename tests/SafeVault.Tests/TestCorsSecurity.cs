@@ -13,19 +13,21 @@ namespace SafeVault.Tests;
 [TestFixture]
 public class TestCorsSecurity
 {
+    private WebApplicationFactory<Program>? _factory;
     private HttpClient? _client;
 
     [SetUp]
     public void Setup()
     {
-        var factory = new WebApplicationFactory<Program>();
-        _client = factory.CreateClient();
+        _factory = new WebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
     }
 
     [TearDown]
     public void TearDown()
     {
         _client?.Dispose();
+        _factory?.Dispose();
     }
 
     [Test]
