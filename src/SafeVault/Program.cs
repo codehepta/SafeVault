@@ -35,6 +35,79 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+
+// Configure rate limiting to prevent brute-force attacks
+builder.Services.AddRateLimiter(options =>
+{
+    // Rate limit for login endpoint: 5 requests per minute per IP
+    options.AddPolicy("login", context =>
+        System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+
+    // Rate limit for registration endpoint: 2 requests per minute per IP
+    options.AddPolicy("register", context =>
+        System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 2,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+
+    // Rate limit for refresh token endpoint: 10 requests per minute per IP
+    options.AddPolicy("refresh", context =>
+        System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+
+    // Global rate limit for all other endpoints: 100 requests per minute per IP
+    options.GlobalLimiter = System.Threading.RateLimiting.PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        // Use IP address as the partition key
+        var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        
+        return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            ipAddress,
+            _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        
+        if (context.Lease.TryGetMetadata(System.Threading.RateLimiting.MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString();
+        }
+
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            error = "Too many requests. Please try again later.",
+            retryAfter = retryAfter.TotalSeconds
+        }, cancellationToken);
+    };
+});
 builder.Services.AddHttpsRedirection(options =>
 {
     options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
@@ -214,6 +287,10 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+// Apply rate limiting before authentication
+app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -278,7 +355,8 @@ app.MapPost("/api/auth/login", async (
     logger.LogInformation("User {Username} logged in successfully", normalizedUsername);
 
     return Results.Ok(new TokenResponse(accessToken, refreshTokenRaw, accessTokenExpiresAtUtc, role));
-});
+})
+.RequireRateLimiting("login");
 
 app.MapPost("/api/auth/register", async (
     [FromBody] RegisterRequest request,
@@ -327,7 +405,8 @@ app.MapPost("/api/auth/register", async (
         Username = normalizedUsername,
         Role = role
     });
-});
+})
+.RequireRateLimiting("register");
 
 app.MapPost("/api/auth/refresh", async (
     [FromBody] RefreshTokenRequest request,
@@ -374,7 +453,8 @@ app.MapPost("/api/auth/refresh", async (
     await dbContext.SaveChangesAsync();
     logger.LogInformation("Refresh token exchanged successfully for user {Username}", user.UserName);
     return Results.Ok(new TokenResponse(newAccessToken, newRefreshTokenRaw, accessTokenExpiresAtUtc, role));
-});
+})
+.RequireRateLimiting("refresh");
 
 app.MapGet("/api/admin/dashboard", (ClaimsPrincipal principal, ILogger<Program> logger) =>
 {
