@@ -82,19 +82,32 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+const string DefaultDevKey = "SafeVault_Dev_Only_Super_Long_Key_Change_In_Production_12345";
+
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.PostConfigure<JwtOptions>(options =>
 {
     if (string.IsNullOrWhiteSpace(options.SigningKey) || options.SigningKey.Length < 32)
     {
-        options.SigningKey = "SafeVault_Dev_Only_Super_Long_Key_Change_In_Production_12345";
-        
-        // Log warning if using default key (security risk in production)
+        // In production, REJECT weak or default keys - fail fast
         if (!builder.Environment.IsDevelopment())
         {
-            Console.WriteLine("WARNING: Using default JWT signing key. This is a SECURITY RISK in production!");
-            Console.WriteLine("Set the JWT:SigningKey in appsettings.Production.json or via environment variable.");
+            throw new InvalidOperationException(
+                "CRITICAL SECURITY ERROR: JWT signing key is missing or too weak for production. " +
+                "Set JWT:SigningKey (minimum 32 characters) in appsettings.Production.json or via JWT__SigningKey environment variable. " +
+                "Generate a secure key with: openssl rand -base64 48");
         }
+        
+        // In development, use default key but warn
+        options.SigningKey = DefaultDevKey;
+        Console.WriteLine("WARNING: Using default development JWT signing key. Do not use in production!");
+    }
+    else if (options.SigningKey == DefaultDevKey && !builder.Environment.IsDevelopment())
+    {
+        // Explicitly reject the known default key in production
+        throw new InvalidOperationException(
+            "CRITICAL SECURITY ERROR: Default development JWT signing key detected in production. " +
+            "This is a severe security vulnerability. Generate and configure a unique production key.");
     }
 });
 
@@ -124,14 +137,25 @@ var audience = builder.Configuration[$"{JwtOptions.SectionName}:Audience"] ?? "S
 var signingKey = builder.Configuration[$"{JwtOptions.SectionName}:SigningKey"];
 if (string.IsNullOrWhiteSpace(signingKey) || signingKey.Length < 32)
 {
-    signingKey = "SafeVault_Dev_Only_Super_Long_Key_Change_In_Production_12345";
-    
-    // Log warning if using default key (security risk in production)
+    // In production, REJECT weak or default keys - fail fast
     if (!builder.Environment.IsDevelopment())
     {
-        Console.WriteLine("WARNING: Using default JWT signing key. This is a SECURITY RISK in production!");
-        Console.WriteLine("Set the JWT:SigningKey in appsettings.Production.json or via environment variable.");
+        throw new InvalidOperationException(
+            "CRITICAL SECURITY ERROR: JWT signing key is missing or too weak for production. " +
+            "Set JWT:SigningKey (minimum 32 characters) in appsettings.Production.json or via JWT__SigningKey environment variable. " +
+            "Generate a secure key with: openssl rand -base64 48");
     }
+    
+    // In development, use default key but warn
+    signingKey = DefaultDevKey;
+    Console.WriteLine("WARNING: Using default development JWT signing key. Do not use in production!");
+}
+else if (signingKey == DefaultDevKey && !builder.Environment.IsDevelopment())
+{
+    // Explicitly reject the known default key in production
+    throw new InvalidOperationException(
+        "CRITICAL SECURITY ERROR: Default development JWT signing key detected in production. " +
+        "This is a severe security vulnerability. Generate and configure a unique production key.");
 }
 
 builder.Services
