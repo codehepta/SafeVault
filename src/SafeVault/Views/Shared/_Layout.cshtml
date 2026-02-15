@@ -1,3 +1,5 @@
+@using Microsoft.AspNetCore.Http
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,11 +12,26 @@
     <header class="topbar">
         <div class="container">
             <h1 class="brand">SafeVault</h1>
+            <nav class="topnav" aria-label="Main navigation">
+                <a asp-controller="Home" asp-action="Index">Login</a>
+                <a asp-controller="Home" asp-action="Register">Register</a>
+                <a asp-controller="Home" asp-action="ApiDemo">API Demo</a>
+                <a asp-controller="Home" asp-action="Dashboard">Dashboard</a>
+                @if (string.Equals(Context.Session.GetString("SafeVault.Role"), "Admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    <a asp-controller="Home" asp-action="AdminPanel">Admin Panel</a>
+                }
+                <form asp-controller="Home" asp-action="Logout" method="post" class="logout-form">
+                    <button type="submit" class="link-button">Logout</button>
+                </form>
+            </nav>
         </div>
     </header>
 
     <main class="container content" role="main">
         @RenderBody()
     </main>
+
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

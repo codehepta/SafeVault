@@ -1,0 +1,68 @@
+@{
+    ViewData["Title"] = "API Demo";
+}
+
+<section class="card">
+    <h2>Auth API Demo</h2>
+
+    <div class="demo-grid">
+        <section>
+            <h3>Register</h3>
+            <div class="row">
+                <label for="register-username">Username</label>
+                <input id="register-username" value="demoapiuser" />
+            </div>
+            <div class="row">
+                <label for="register-email">Email</label>
+                <input id="register-email" type="email" value="demoapiuser@example.com" />
+            </div>
+            <div class="row">
+                <label for="register-password">Password</label>
+                <input id="register-password" type="password" value="DemoApi#123" />
+            </div>
+            <button type="button" id="btn-register">POST /api/auth/register</button>
+        </section>
+
+        <section>
+            <h3>Login</h3>
+            <div class="row">
+                <label for="login-username">Username</label>
+                <input id="login-username" value="demoapiuser" />
+            </div>
+            <div class="row">
+                <label for="login-password">Password</label>
+                <input id="login-password" type="password" value="DemoApi#123" />
+            </div>
+            <button type="button" id="btn-login">POST /api/auth/login</button>
+        </section>
+
+        <section>
+            <h3>Refresh</h3>
+            <button type="button" id="btn-refresh">POST /api/auth/refresh</button>
+        </section>
+
+        <section>
+            <h3>Protected Endpoints</h3>
+            <button type="button" id="btn-user">GET /api/user/profile</button>
+            <button type="button" id="btn-admin">GET /api/admin/dashboard</button>
+            <button type="button" id="btn-guest">GET /api/guest/welcome</button>
+        </section>
+    </div>
+
+    <h3>Current Tokens</h3>
+    <div class="row">
+        <label for="access-token">Access Token</label>
+        <textarea id="access-token" rows="4" readonly></textarea>
+    </div>
+    <div class="row">
+        <label for="refresh-token">Refresh Token</label>
+        <textarea id="refresh-token" rows="2" readonly></textarea>
+    </div>
+
+    <h3>Response</h3>
+    <pre id="api-output" class="output">Ready.</pre>
+</section>
+
+@section Scripts {
+    <script src="~/js/api-demo.js" asp-append-version="true"></script>
+}

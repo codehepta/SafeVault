@@ -27,6 +27,40 @@ body {
     font-size: 1.25rem;
 }
 
+.topnav {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.topnav a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.topnav a:hover {
+    text-decoration: underline;
+}
+
+.logout-form {
+    margin: 0;
+}
+
+.link-button {
+    background: transparent;
+    color: #2563eb;
+    padding: 0;
+    border: 0;
+    font-weight: 500;
+}
+
+.link-button:hover {
+    text-decoration: underline;
+}
+
 .content {
     padding-top: 24px;
     padding-bottom: 24px;
@@ -56,6 +90,14 @@ input {
     border-radius: 6px;
 }
 
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+}
+
 button {
     border: 0;
     border-radius: 6px;
@@ -76,7 +118,115 @@ button {
     background: #eef2ff;
 }
 
+.message.error {
+    background: #fee2e2;
+}
+
 .validation {
     color: #b91c1c;
+    font-size: 0.875rem;
+}
+
+.note-links {
+    margin: 0 0 14px 0;
+}
+
+.note-links a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.note-links a:hover {
+    text-decoration: underline;
+}
+
+.demo-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-bottom: 16px;
+}
+
+.demo-grid section {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.demo-grid h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.output {
+    margin: 0;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    border-radius: 6px;
+    padding: 12px;
+    min-height: 140px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.vault-table-wrap {
+    overflow-x: auto;
+}
+
+.vault-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.vault-table th,
+.vault-table td {
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    padding: 8px;
+    vertical-align: middle;
+}
+
+.vault-table th {
+    font-size: 0.875rem;
+}
+
+.danger {
+    background: #b91c1c;
+}
+
+.secondary {
+    background: #374151;
+}
+
+.row-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.row-actions form {
+    margin: 0;
+}
+
+.button-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    background: #2563eb;
+    color: #ffffff;
+    text-decoration: none;
     font-size: 0.875rem;
 }

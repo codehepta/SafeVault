@@ -1,0 +1,40 @@
+@model SafeVault.Models.RegisterPageViewModel
+
+@{
+    ViewData["Title"] = "Register";
+}
+
+<section class="card">
+    <p class="note">Create a local test user with default role <strong>User</strong>.</p>
+
+    <form asp-action="Register" method="post">
+        <div class="row">
+            <label asp-for="Username"></label>
+            <input asp-for="Username" />
+            <span class="validation" asp-validation-for="Username"></span>
+        </div>
+        <div class="row">
+            <label asp-for="Email"></label>
+            <input asp-for="Email" type="email" />
+            <span class="validation" asp-validation-for="Email"></span>
+        </div>
+        <div class="row">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" type="password" />
+            <span class="validation" asp-validation-for="Password"></span>
+        </div>
+        <button type="submit">Register</button>
+    </form>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="message error">
+            <div asp-validation-summary="All"></div>
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <p class="message">@Model.Message</p>
+    }
+</section>

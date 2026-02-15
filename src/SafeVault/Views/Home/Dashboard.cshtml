@@ -1,0 +1,89 @@
+@model SafeVault.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<section class="card">
+    <h2>Dashboard</h2>
+    <p class="note">Welcome <strong>@Model.Username</strong> (Role: <strong>@Model.Role</strong>).</p>
+    @if (string.Equals(Model.Role, "Admin", StringComparison.OrdinalIgnoreCase))
+    {
+        <p class="note-links"><a asp-action="AdminPanel">Open Admin Panel</a></p>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <p class="message">@Model.Message</p>
+    }
+
+    <h3>Add Password</h3>
+    <form asp-action="AddPassword" method="post">
+        <div class="row">
+            <label for="label">Label</label>
+            <input id="label" name="label" maxlength="100" placeholder="Github, Bank, Email" />
+        </div>
+        <div class="row">
+            <label for="loginName">Login/User</label>
+            <input id="loginName" name="loginName" maxlength="100" placeholder="username or email" />
+        </div>
+        <div class="row">
+            <label for="secret">Password</label>
+            <input id="secret" name="secret" type="password" maxlength="256" />
+        </div>
+        <button type="submit">Add Password</button>
+    </form>
+
+    <h3>Your Passwords</h3>
+    @if (Model.PasswordEntries.Count == 0)
+    {
+        <p>No passwords saved yet.</p>
+    }
+    else
+    {
+        <div class="vault-table-wrap">
+            <table class="vault-table">
+                <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>Login/User</th>
+                        <th>Password</th>
+                        <th>Created</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in Model.PasswordEntries)
+                    {
+                        <tr>
+                            <td>@entry.Label</td>
+                            <td>@entry.LoginName</td>
+                            <td>
+                                <span class="secret-value" data-entry-id="@entry.Id" data-masked="@entry.MaskedSecret">@entry.MaskedSecret</span>
+                            </td>
+                            <td>@entry.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <div class="row-actions">
+                                    <button type="button" class="secondary btn-toggle-secret" data-entry-id="@entry.Id">Show</button>
+                                    <button type="button" class="secondary btn-copy-secret" data-entry-id="@entry.Id">Copy</button>
+                                    <form asp-action="RemovePassword" method="post">
+                                        <input type="hidden" name="id" value="@entry.Id" />
+                                        <button type="submit" class="danger">Remove</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<form id="vault-secret-token-form" method="post" asp-action="GetPasswordSecret" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+}

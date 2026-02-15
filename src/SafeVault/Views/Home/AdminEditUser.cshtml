@@ -1,0 +1,42 @@
+@model SafeVault.Models.AdminEditUserViewModel
+
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<section class="card">
+    <h2>Edit User</h2>
+
+    <form asp-action="AdminEditUser" method="post">
+        <input asp-for="UserId" type="hidden" />
+
+        <div class="row">
+            <label asp-for="Username">Username</label>
+            <input asp-for="Username" maxlength="50" />
+        </div>
+
+        <div class="row">
+            <label asp-for="Email">Email</label>
+            <input asp-for="Email" type="email" maxlength="256" />
+        </div>
+
+        <div class="row">
+            <label asp-for="Role">Role</label>
+            <select asp-for="Role">
+                <option value="Admin">Admin</option>
+                <option value="User">User</option>
+                <option value="Guest">Guest</option>
+            </select>
+        </div>
+
+        <button type="submit">Save Changes</button>
+        <a asp-action="AdminPanel" class="button-link">Back to Admin Panel</a>
+    </form>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="message error">
+            <div asp-validation-summary="All"></div>
+        </div>
+    }
+</section>

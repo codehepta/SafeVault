@@ -20,6 +20,13 @@ if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URL
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddLogging();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+});
 
 // Configure CORS with secure defaults
 builder.Services.AddCors(options =>
@@ -267,6 +274,27 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
     await dbContext.Database.EnsureCreatedAsync();
 
+    // Ensure new tables exist for already-created SQLite databases.
+    // EnsureCreated does not apply model changes once the database exists.
+    if (string.Equals(dbContext.Database.ProviderName, "Microsoft.EntityFrameworkCore.Sqlite", StringComparison.Ordinal))
+    {
+        await dbContext.Database.ExecuteSqlRawAsync(@"
+            CREATE TABLE IF NOT EXISTS PasswordEntries (
+                Id INTEGER NOT NULL CONSTRAINT PK_PasswordEntries PRIMARY KEY AUTOINCREMENT,
+                UserId TEXT NOT NULL,
+                Label TEXT NOT NULL,
+                LoginName TEXT NOT NULL,
+                Secret TEXT NOT NULL,
+                CreatedAtUtc TEXT NOT NULL
+            );
+        ");
+
+        await dbContext.Database.ExecuteSqlRawAsync(@"
+            CREATE INDEX IF NOT EXISTS IX_PasswordEntries_UserId
+            ON PasswordEntries (UserId);
+        ");
+    }
+
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     await IdentitySeeder.SeedAsync(roleManager, userManager);
@@ -291,6 +319,7 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseSession();
 
 // Apply rate limiting before authentication
 app.UseRateLimiter();

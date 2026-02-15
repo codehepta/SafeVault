@@ -23,6 +23,11 @@ public class AuthDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     /// <summary>
+    /// Gets or sets per-user password vault entries.
+    /// </summary>
+    public DbSet<PasswordEntry> PasswordEntries => Set<PasswordEntry>();
+
+    /// <summary>
     /// Configures model metadata for auth entities.
     /// </summary>
     protected override void OnModelCreating(ModelBuilder builder)
@@ -35,6 +40,16 @@ public class AuthDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(token => token.TokenHash).HasMaxLength(128).IsRequired();
             entity.Property(token => token.UserId).IsRequired();
             entity.HasIndex(token => token.TokenHash).IsUnique();
+        });
+
+        builder.Entity<PasswordEntry>(entity =>
+        {
+            entity.HasKey(entry => entry.Id);
+            entity.Property(entry => entry.UserId).IsRequired();
+            entity.Property(entry => entry.Label).HasMaxLength(100).IsRequired();
+            entity.Property(entry => entry.LoginName).HasMaxLength(100).IsRequired();
+            entity.Property(entry => entry.Secret).HasMaxLength(256).IsRequired();
+            entity.HasIndex(entry => entry.UserId);
         });
     }
 }

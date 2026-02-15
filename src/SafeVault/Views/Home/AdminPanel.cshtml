@@ -1,0 +1,53 @@
+@model SafeVault.Models.AdminPanelViewModel
+
+@{
+    ViewData["Title"] = "Admin Panel";
+}
+
+<section class="card">
+    <h2>Admin Panel</h2>
+    <p class="note">Admin-only feature: clear any user's vault entries.</p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <p class="message">@Model.Message</p>
+    }
+
+    <div class="vault-table-wrap">
+        <table class="vault-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Roles</th>
+                    <th>Vault Entries</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td>@user.Username</td>
+                        <td>@user.Email</td>
+                        <td>@user.Roles</td>
+                        <td>@user.VaultCount</td>
+                        <td>
+                            <div class="row-actions">
+                                <a asp-action="AdminEditUser" asp-route-userId="@user.UserId" class="button-link">Edit User</a>
+                                <form asp-action="AdminClearUserVault" method="post">
+                                    <input type="hidden" name="userId" value="@user.UserId" />
+                                    <button type="submit" class="danger">Clear Vault</button>
+                                </form>
+                                <form asp-action="AdminDeleteUser" method="post">
+                                    <input type="hidden" name="userId" value="@user.UserId" />
+                                    <button type="submit" class="danger">Delete User</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
